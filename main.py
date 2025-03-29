@@ -2,6 +2,8 @@ import subprocess
 import sys
 import time
 import tkinter
+import pyautogui
+import pygetwindow
 from tkinter import messagebox
 import screeninfo
 from settings import *
@@ -44,7 +46,14 @@ def update_apps(execution_status, window):
         execution_status.set("Aktualizowanie aplikacji JW Library ...")
         time.sleep(1)
         window.update_idletasks()
-        subprocess.run(["cmd", "/c", "winget upgrade --id 9WZDNCRFJ3B4"], check=True)
+        subprocess.run(
+            [
+                "cmd",
+                "/c",
+                "winget upgrade --id 9WZDNCRFJ3B4",
+            ],
+            check=True,
+        )
     except subprocess.CalledProcessError as e:
         if e.returncode != 2316632107:
             messagebox.showerror("Błąd", f"update_apps()\nBłąd: {e}")
@@ -53,7 +62,14 @@ def update_apps(execution_status, window):
         execution_status.set("Aktualizowanie aplikacji Zoom ...")
         time.sleep(1)
         window.update_idletasks()
-        subprocess.run(["cmd", "/c", "winget upgrade --id XP99J3KP4XZ4VV"], check=True)
+        subprocess.run(
+            [
+                "cmd",
+                "/c",
+                "winget upgrade --id XP99J3KP4XZ4VV --accept-package-agreements",
+            ],
+            check=True,
+        )
     except subprocess.CalledProcessError as e:
         if e.returncode != 2316632107:
             messagebox.showerror(
@@ -64,19 +80,61 @@ def update_apps(execution_status, window):
     execution_status.set("Aktualizowanie aplikacji zakończone ...")
 
 
-def set_jw_library():
+def set_jw_library(execution_status, window):
     try:
-        subprocess.run(
-            [
-                "cmd",
-                "/c",
-                "start",
-                f"C:\\Program Files\\WindowsApps\\WatchtowerBibleandTractSo.45909CDBADF3C_15.1.64.0_x64__5rz59y55nfz3e\\JWLibrary.exe",
-            ],
-            check=True,
-        )
+        execution_status.set("Uruchamianie aplikacji JW Library...")
+        window.update_idletasks()
+        pyautogui.press("win")
+        time.sleep(1)
+        pyautogui.write("JW Library")
+        time.sleep(1)
+        pyautogui.press("enter")
+        time.sleep(5)
+
+        execution_status.set("Ustawianie okna aplikacji JW Library...")
+        window.update_idletasks()
+
+        for w in pygetwindow.getWindowsWithTitle("JW Library"):
+            w.activate()
+            w.maximize()
+            pyautogui.keyDown("win")
+            pyautogui.press("left")
+            pyautogui.press("up")
+            pyautogui.keyUp("win")
+            pyautogui.press("escape")
+
     except subprocess.CalledProcessError as e:
         messagebox.showerror("Błąd", f"set_jw_library()\nBłąd: {e}")
+
+    execution_status.set("Ustawianie aplikacji JW Library zakończone...")
+    window.update_idletasks()
+
+
+def set_file_explorer(execution_status, window):
+    try:
+        execution_status.set("Uruchamianie folderu z plikami wideo...")
+        window.update_idletasks()
+        subprocess.Popen('explorer "F:"')
+
+        execution_status.set("Ustawianie okna z folderem z plikami wideo...")
+        window.update_idletasks()
+        time.sleep(1)
+
+        for w in pygetwindow.getAllWindows():
+            if "File Explorer" in w.title:
+                w.activate()
+                w.maximize()
+                pyautogui.keyDown("win")
+                pyautogui.press("left")
+                pyautogui.press("down")
+                pyautogui.keyUp("win")
+                pyautogui.press("escape")
+
+    except subprocess.CalledProcessError as e:
+        messagebox.showerror("Błąd", f"set_file_explorer()\nBłąd: {e}")
+
+    execution_status.set("Ustawianie okna z folderem z plikami wideo zakończone...")
+    window.update_idletasks()
 
 
 def execute_all(execution_status, window):
@@ -84,16 +142,18 @@ def execute_all(execution_status, window):
     # time.sleep(2)
     # update_apps(execution_status, window)
     # time.sleep(2)
-    set_jw_library()
+    # set_jw_library(execution_status, window)
+    # time.sleep(2)
+    set_file_explorer(execution_status, window)
 
 
 def app_window():
     background_color = "#452C63"
-
     window = tkinter.Tk()
     window.title("Ustaw komputer")
     window.resizable(False, False)
     window.configure(bg=background_color)
+    window.wm_attributes("-topmost", 1)
 
     center_window(window)
     set_window_size(window)
